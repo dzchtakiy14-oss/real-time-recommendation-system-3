@@ -7,5 +7,4 @@ redis
 faiss-cpu
 pandas
 redis
-gdown
-gunicorn
+scikit-learn

@@ -17,6 +17,11 @@ mapping_item_idx_to_title = load("storage/store/item_idx_to_title.pkl")
 mapping_item_idx_to_image = load("storage/store/book_idx_to_images_links.pkl")
 mapping_items_idx_to_id = load("storage/store/items_idx_to_id.pkl")
 
+# ==================
+# Load Popular Items
+# ==================
+popular_items = [int(i) for i in load("storage/store/popular_items.pkl")]
+
 # =======================
 # Retrieve Common Items
 # =======================
@@ -37,23 +42,45 @@ def retrieve_common_items(user_idx, k: int):
 
         # === Retrieve Interacted and watched Items ===
         key_interacted_items = f"saver_interaction:{user_idx}:interacted_items"
+        key_watched_items = f"saver_interaction:{user_idx}:watched_items"
 
-        interacted_items = r.lrange(key_interacted_items, 0, -1)
+        pipe = r.pipeline()
+
+        pipe.lrange(key_interacted_items, 0, -1)
+        pipe.lrange(key_watched_items, 0, -1)
+
+        interacted_items, watched_items = pipe.execute()
 
         # === Filter Common Items ===
-        interacted_items = set([int(i) for i in interacted_items])
+        interacted_items_int = []
+        if interacted_items:
+            interacted_items_int = [int(i) for i in interacted_items ]
+        
+        if watched_items:
+            interacted_items_int = [int(i) for i in watched_items] + interacted_items_int
 
+        interacted_items_int = set(interacted_items_int)
+        
         common_items = []
         for common_item in common_items_1:
-            if common_item not in interacted_items:
+            if common_item not in interacted_items_int:
                 common_items.append(common_item)
                 if len(common_items) == k:
                     break
 
         if len(common_items) < k:
             missing_num = k - len(common_items)
-            all_items = set(mapping_items_idx_to_id.keys())
-            filtered_items = list(all_items - interacted_items)
+            all_items = set(popular_items) 
+            filtered_items = list(all_items - interacted_items_int - set(common_items))
+            if len(filtered_items) >= missing_num:
+                common_items.extend(random.sample(filtered_items, k=missing_num))
+            else:
+                common_items.extend(filtered_items)
+
+        if len(common_items) < k:
+            missing_num = k - len(common_items)
+            all_items = set(mapping_items_idx_to_id.keys()) 
+            filtered_items = list(all_items - interacted_items_int - set(common_items))
             if len(filtered_items) >= missing_num:
                 common_items.extend(random.sample(filtered_items, k=missing_num))
             else:

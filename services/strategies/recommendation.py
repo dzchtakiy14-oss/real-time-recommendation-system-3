@@ -50,8 +50,9 @@ def providing_recommendation(user_idx, new_user_vec, k):
         pipe.lrange(key_watched_items, 0, -1)
         interacted_items, watched_items = pipe.execute()
 
-            # === Filter recommendations ===
-        interacted_items_int = [int(i) for i in interacted_items]
+        # === Filter recommendations ===
+        if interacted_items:
+            interacted_items_int = [int(i) for i in interacted_items]
         if watched_items:
             interacted_items_int = [int(i) for i in watched_items] + interacted_items_int
 
@@ -79,7 +80,7 @@ def providing_recommendation(user_idx, new_user_vec, k):
         # === Save Recommended Items ===
         pipe = r.pipeline()
         pipe.lpush(key_watched_items, *reranked_items)
-        pipe.ltrim(key_watched_items, 0, 50)
+        pipe.ltrim(key_watched_items, 0, 60)
         pipe.execute()
 
         # === Providing Recommendations ===
