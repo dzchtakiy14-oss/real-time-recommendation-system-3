@@ -47,11 +47,11 @@ build the image;
 run the container;
 access the API through FastAPI.
 
-Data Flow Diagram: 
-![System Diagram](docs/Data_Flow_Diagram.svg)
-
 - Project Goal:
 Build a production-ready recommendation system.
 Apply deep learning techniques to recommendation.
 Address real-time system challenges.
 Improve performance using approximate nearest-neighbor search techniques.
+
+Data Flow Diagram: 
+![System Diagram](docs/Data_Flow_Diagram.svg)
